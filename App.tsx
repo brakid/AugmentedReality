@@ -2,20 +2,23 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useWindowDimensions, View, Text } from 'react-native';
 import { ExpoWebGLRenderingContext, GLView } from 'expo-gl';
 import { AmbientLight, BoxBufferGeometry, Fog, GridHelper, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, WebGLRenderer } from 'three';
-import { getCanvas, smooth } from './utils';
+import { getCanvas } from './utils';
 import { LocationObject } from 'expo-location';
-import { ThreeAxisMeasurement, Magnetometer, Accelerometer, DeviceMotion } from 'expo-sensors';
-import { Subscription } from 'expo-sensors/build/Pedometer';
+import { ThreeAxisMeasurement, Magnetometer, DeviceMotion } from 'expo-sensors';
+import { Subscription } from 'expo-modules-core';
 import * as Location from 'expo-location';
 import { Camera } from 'expo-camera';
 import { getOrientation, getRotationMatrix, Orientation } from './rotation';
+import { LowPassFilter } from './lowpassfilter';
 
 const App = () => {
   const { width, height } = useWindowDimensions();
   const [ location, setLocation ] = useState<LocationObject>();
   const [ orientation, setOrientation ] = useState<Orientation>({ azimuth: 0, pitch: 0, roll: 0 });
+  const [ magnetometerFilter ] = useState<LowPassFilter>(new LowPassFilter());
   const [ magnetometerData, setMagnetometerData ] = useState<ThreeAxisMeasurement>({ x: 0, y: 0, z: 0 });
   const [ magnetometerSubscription, setMagnetometerSubscription ] = useState<Subscription>();
+  const [ accelerometerFilter ] = useState<LowPassFilter>(new LowPassFilter());
   const [ accelerometerData, setAccelerometerData ] = useState<ThreeAxisMeasurement>({ x: 0, y: 0, z: 0 });
   const [ accelerometerSubscription, setAccelerometerSubscription ] = useState<Subscription>();
   const cameraRef = useRef<PerspectiveCamera>();
@@ -39,7 +42,8 @@ const App = () => {
   };
 
   const appendMagnetometerData = (newData: ThreeAxisMeasurement): void => {
-    setMagnetometerData(data => { return { x: smooth(data.x, newData.x), y: smooth(data.y, newData.y), z: smooth(data.z, newData.z) }});
+    const value = magnetometerFilter.pass(newData);
+    setMagnetometerData(value);
   };
 
   const unsubscribeMagnetometer = () => {
@@ -59,16 +63,14 @@ const App = () => {
       const subscription = DeviceMotion.addListener(data => appendAccelerometerData(data.accelerationIncludingGravity))
       setAccelerometerSubscription(subscription);
       console.log('DeviceMotion available');
-
-      //Accelerometer.addListener(data => console.log('Accelerometer: ' + JSON.stringify(data)));
-      //DeviceMotion.addListener(data => console.log('Device Motion: ' + JSON.stringify(data.accelerationIncludingGravity)));
     } else {
       console.log('DeviceMotion not available');
     }
   };
 
   const appendAccelerometerData = (newData: ThreeAxisMeasurement): void => {
-    setAccelerometerData(data => { return { x: smooth(data.x, newData.x), y: smooth(data.y, newData.y), z: smooth(data.z, newData.z) }});
+    const value = accelerometerFilter.pass(newData);
+    setAccelerometerData(value);
   };
 
   const unsubscribeAccelerometer = () => {
@@ -119,8 +121,8 @@ const App = () => {
     if (cameraRef.current) {
       const motionForward = accelerometerData.z;
 
-      if (Math.abs(Math.sin(orientation.roll)) > 0.5) {
-        console.log('Moving Forward: ' + motionForward);
+      if (motionForward < 0.01 && Math.abs(Math.sin(orientation.roll)) > 0.5) {
+        //console.log('Moving Forward: ' + motionForward);
 
         const speed = (motionForward * 0.02);
         const movement = speed * 10; // assuming 10 second
