@@ -4,7 +4,7 @@ import { ExpoWebGLRenderingContext, GLView } from 'expo-gl';
 import { AmbientLight, BoxBufferGeometry, Fog, GridHelper, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, WebGLRenderer } from 'three';
 import { getCanvas, smooth } from './utils';
 import { LocationObject } from 'expo-location';
-import { ThreeAxisMeasurement, Magnetometer, Accelerometer } from 'expo-sensors';
+import { ThreeAxisMeasurement, Magnetometer, Accelerometer, DeviceMotion } from 'expo-sensors';
 import { Subscription } from 'expo-sensors/build/Pedometer';
 import * as Location from 'expo-location';
 import { Camera } from 'expo-camera';
@@ -48,19 +48,22 @@ const App = () => {
   };
 
   const subscribeAccelerometer = async () => {
-    const available = await Accelerometer.isAvailableAsync();
+    const available = await DeviceMotion.isAvailableAsync();
     if (available) {
-      let { status } = await Accelerometer.requestPermissionsAsync();
+      let { status } = await DeviceMotion.requestPermissionsAsync();
       if (status !== 'granted') {
-        console.log('Permission to access Accelerometer was denied');
+        console.log('Permission to access DeviceMotion was denied');
         return;
       }
-      Accelerometer.setUpdateInterval(50);
-      const subscription = Accelerometer.addListener(data => appendAccelerometerData(data))
+      DeviceMotion.setUpdateInterval(50);
+      const subscription = DeviceMotion.addListener(data => appendAccelerometerData(data.accelerationIncludingGravity))
       setAccelerometerSubscription(subscription);
-      console.log('Accelerometer available');
+      console.log('DeviceMotion available');
+
+      //Accelerometer.addListener(data => console.log('Accelerometer: ' + JSON.stringify(data)));
+      //DeviceMotion.addListener(data => console.log('Device Motion: ' + JSON.stringify(data.accelerationIncludingGravity)));
     } else {
-      console.log('Accelerometer not available');
+      console.log('DeviceMotion not available');
     }
   };
 
@@ -114,9 +117,26 @@ const App = () => {
 
   const changeView = async () => {
     if (cameraRef.current) {
-      const x = -1.0 * Math.sin(orientation.roll) * Math.cos(orientation.azimuth + Math.PI/2) + cameraRef.current.position.x;
-      const y = -1.0 * Math.sin(orientation.roll) * Math.sin(orientation.azimuth + Math.PI/2) + cameraRef.current.position.z;
-      const z = -1.0 * Math.cos(orientation.roll) + cameraRef.current.position.y;
+      const motionForward = accelerometerData.z;
+
+      if (Math.abs(Math.sin(orientation.roll)) > 0.5) {
+        console.log('Moving Forward: ' + motionForward);
+
+        const speed = (motionForward * 0.02);
+        const movement = speed * 10; // assuming 10 second
+
+        const xMovement = movement * Math.cos(orientation.azimuth + Math.PI/2);
+        const yMovement = movement * Math.sin(orientation.azimuth + Math.PI/2);
+
+        //console.log('Movement: ' + xMovement + ' ' + yMovement);
+
+        const { x, y, z } = cameraRef.current.position;
+        //cameraRef.current.position.set(x + xMovement, y, z + yMovement);
+      }
+
+      const x = -1.0 * Math.sin(orientation.roll) * Math.sin(orientation.azimuth + 3 * Math.PI / 4) + cameraRef.current.position.x;
+      const y = -1.0 * Math.sin(orientation.roll) * Math.cos(orientation.azimuth + 3 * Math.PI / 4) + cameraRef.current.position.z;
+      const z = Math.cos(orientation.roll) + cameraRef.current.position.y;
 
       //console.log({ x, y, z });
 

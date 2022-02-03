@@ -27,7 +27,7 @@ export const getRotationMatrix = (accelerometerData: ThreeAxisMeasurement, magne
   
   if (normsqA < freeFallGravitySquared) {
     // gravity less than 10% of normal value
-    console.log('Gravity too low');
+    //console.log('Gravity too low');
     return undefined;
   }
 
@@ -44,7 +44,7 @@ export const getRotationMatrix = (accelerometerData: ThreeAxisMeasurement, magne
   if (normH < 0.1) {
     // device is close to free fall (or in space?), or close to
     // magnetic north pole. Typical values are > 100.
-    console.log('Free fall or close to North Pole');
+    //console.log('Free fall or close to North Pole');
     return undefined;
   }
 
