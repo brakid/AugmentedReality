@@ -10,6 +10,7 @@ import * as Location from 'expo-location';
 import { Camera } from 'expo-camera';
 import { getOrientation, getRotationMatrix, Orientation } from './rotation';
 import { LowPassFilter } from './lowpassfilter';
+import { StepDetector } from './stepdetector';
 
 const App = () => {
   const { width, height } = useWindowDimensions();
@@ -21,6 +22,8 @@ const App = () => {
   const [ accelerometerFilter ] = useState<LowPassFilter>(new LowPassFilter());
   const [ accelerometerData, setAccelerometerData ] = useState<ThreeAxisMeasurement>({ x: 0, y: 0, z: 0 });
   const [ accelerometerSubscription, setAccelerometerSubscription ] = useState<Subscription>();
+  const [ stepDetector ] = useState<StepDetector>(new StepDetector());
+  const [ steps, setSteps ] = useState<number>(0);
   const cameraRef = useRef<PerspectiveCamera>();
   const sceneRef = useRef<Scene>();
 
@@ -59,7 +62,7 @@ const App = () => {
         console.log('Permission to access DeviceMotion was denied');
         return;
       }
-      DeviceMotion.setUpdateInterval(50);
+      DeviceMotion.setUpdateInterval(200);
       const subscription = DeviceMotion.addListener(data => appendAccelerometerData(data.accelerationIncludingGravity))
       setAccelerometerSubscription(subscription);
       console.log('DeviceMotion available');
@@ -71,6 +74,7 @@ const App = () => {
   const appendAccelerometerData = (newData: ThreeAxisMeasurement): void => {
     const value = accelerometerFilter.pass(newData);
     setAccelerometerData(value);
+    stepDetector.updateAcceleration(newData);
   };
 
   const unsubscribeAccelerometer = () => {
@@ -97,6 +101,9 @@ const App = () => {
   };
 
   useEffect(() => {
+    const stepCallback = () => { setSteps(steps => steps + 1) };
+    stepDetector.setStepCallback(stepCallback);
+
     initLocation();
     initCamera();
     subscribeMagnetometer();
@@ -208,7 +215,7 @@ const App = () => {
     };
     render();
   };
-
+/*
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
       <Camera ratio='2:1' type={ Camera.Constants.Type.back } style={{ width, height }}>
@@ -216,7 +223,9 @@ const App = () => {
         <GLView style={{ width, height }} onContextCreate={ onContextCreate } />
       </Camera>
     </View>
-  );
+  );*/
+
+  return (<Text style={{ margin: 30 }}>Steps: { steps }</Text>);
 }
 
 export default App;
