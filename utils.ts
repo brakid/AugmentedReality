@@ -1,4 +1,5 @@
 import { ExpoWebGLRenderingContext } from 'expo-gl';
+import { Mesh, Vector3 } from 'three';
 
 export const getCanvas = (gl: ExpoWebGLRenderingContext): HTMLCanvasElement => {
   return ({
@@ -38,4 +39,22 @@ export const calculateDirection = (angle: number): string => {
 
 export const getDirection = (angle: number): number => {
   return -1.0 * ((Math.PI / 180)) * (angle - 180);
+};
+
+export const distance = (position: Vector3, objectPosition: Vector3): number => {
+  return Math.sqrt(
+    (position.x - objectPosition.x) * (position.x - objectPosition.x) + 
+    (position.z - objectPosition.z) * (position.z - objectPosition.z))
+};
+
+export const compare = (position: Vector3): ((object1: Mesh, object2: Mesh) => number) => {
+  return (object1, object2) => {
+    if (distance(position, object1.position) < distance(position, object2.position)){
+      return -1;
+    }
+    if (distance(position, object1.position) > distance(position, object2.position)){
+      return 1;
+    }
+    return 0;
+  };
 };
