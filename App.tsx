@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useWindowDimensions, View, Text } from 'react-native';
 import { ExpoWebGLRenderingContext, GLView } from 'expo-gl';
-import { AmbientLight, BoxBufferGeometry, Fog, GridHelper, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, WebGLRenderer } from 'three';
-import { compare, distance, getCanvas } from './utils';
+import { AmbientLight, Fog, GridHelper, Mesh, PerspectiveCamera, Scene, WebGLRenderer } from 'three';
+import { distance, filter, getCanvas } from './utils';
 import { LocationAccuracy, LocationObject, LocationOptions } from 'expo-location';
 import { ThreeAxisMeasurement, Magnetometer, DeviceMotion } from 'expo-sensors';
 import { Subscription } from 'expo-modules-core';
@@ -11,26 +11,20 @@ import { Camera } from 'expo-camera';
 import { getOrientation, getRotationMatrix, Orientation } from './rotation';
 import { LowPassFilter } from './lowpassfilter';
 import { StepDetector } from './stepdetector';
+import { render } from './rendering';
 
-const getCube = (x: number, y: number, z: number, color: number): Mesh => {
-  const cube = new Mesh(new BoxBufferGeometry(1.0, 1.0, 1.0), new MeshBasicMaterial({ color }));
-  cube.position.set(x, y, z);
-
-  return cube;
-}
-
-const cubes: Mesh[] = [
-  getCube(1, 0.5, 0, 0xff0000),
-  getCube(3, 0.5, 0, 0x00ff00),
-  getCube(5, 0.5, 0, 0x0000ff),
-  getCube(7, 0.5, 0, 0xffffff),
-  getCube(9, 0.5, 0, 0x000000),
+const meshes = [
+  { shape: 'cube', x: 1, y: 0.5, z: 0, color: 0xff0000 },
+  { shape: 'cylinder', x: 3, y: 0.5, z: 0, color: 0x00ff00 },
+  { shape: 'torus', x: 5, y: 0.5, z: 0, color: 0x0000ff },
+  { shape: 'sphere', x: 7, y: 0.5, z: 0, color: 0xffffff },
+  { shape: 'cube', x: 9, y: 0.5, z: 0, color: 0x000000 },
 ];
 
 const App = () => {
-  const [ objects ] = useState<Mesh[]>(cubes);
+  const [ objects ] = useState<Mesh[]>(filter(meshes.map(mesh => render(mesh))));
   const [ currentObjects, setCurrentObjects ] = useState<Mesh[]>([]);
-  const renderLimit = 30;
+  const renderLimit = 5;
 
   const { width, height } = useWindowDimensions();
   const [ location, setLocation ] = useState<LocationObject>();
@@ -196,8 +190,6 @@ const App = () => {
 
       //console.log('Position: ' + JSON.stringify(position));
 
-      //const sortedObjects = [...objects];
-      //sortedObjects.sort(compare(position));
       const objectsToRender = objects.filter(object => distance(position, object.position) < renderLimit);
 
       //console.log('Objects to render: ' + JSON.stringify(objectsToRender.map(object => object.position)));
@@ -218,7 +210,6 @@ const App = () => {
   }, [steps]);
 
   const updatePosition = () => {
-    console.log(location);
     if (cameraRef.current && location) {
       cameraRef.current.position.set(location.coords.latitude, 2, location.coords.longitude);
     }
@@ -255,27 +246,6 @@ const App = () => {
     // x- -> South
     // z+ -> East
     // z- -> West
-  /*
-    //North - red
-    const cube = new Mesh(new BoxBufferGeometry(1.0, 1.0, 1.0), new MeshBasicMaterial({ color: 0xff0000 }));
-    cube.position.set(5, 0.5, 0);
-    scene.add(cube);
-  
-    // West - green
-    const cube1 = new Mesh(new BoxBufferGeometry(1.0, 1.0, 1.0), new MeshBasicMaterial({ color: 0x00ff00 }));
-    cube1.position.set(0, 0.5, -5);
-    scene.add(cube1);
-
-    // East - blue
-    const cube2 = new Mesh(new BoxBufferGeometry(1.0, 1.0, 1.0), new MeshBasicMaterial({ color: 0x0000ff }));
-    cube2.position.set(0, 0.5, 5);
-    scene.add(cube2);
-
-    // Up - white
-    const cube3 = new Mesh(new BoxBufferGeometry(1.0, 1.0, 1.0), new MeshBasicMaterial({ color: 0xffffff }));
-    cube3.position.set(0, 5.5, 0);
-    scene.add(cube3);
-  */
 
     renderObjects();
     // Setup an animation loop
@@ -290,14 +260,10 @@ const App = () => {
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
       <Camera ratio='2:1' type={ Camera.Constants.Type.back } style={{ width, height }}>
-        <Text>direction (phone in horizontal mode): { orientation.azimuth + Math.PI / 2 }</Text>
-        <Text>steps: { steps }</Text>
         <GLView style={{ width, height }} onContextCreate={ onContextCreate } />
       </Camera>
     </View>
   );
-
-  //return (<Text style={{ margin: 30 }}>Steps: { steps }</Text>);
-}
+};
 
 export default App;

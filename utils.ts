@@ -58,3 +58,11 @@ export const compare = (position: Vector3): ((object1: Mesh, object2: Mesh) => n
     return 0;
   };
 };
+
+export const filter = <T>(array: (T | undefined)[]): T[] => {
+  const result: T[] = [];
+
+  array.forEach(value => { if (value) { result.push(value) } });
+
+  return result;
+};
