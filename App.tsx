@@ -22,14 +22,15 @@ const meshes = [
 ];
 
 const gpsMeshes = [
-  { shape: 'cube', coordinates: { latitude: 49.627644, longitude: 6.150791, altitude: 0.5 }, color: 0xffff00 },
+  { shape: 'cube', coordinates: { latitude: 49.627644, longitude: 6.150791, altitude: 0.5 }, color: 0xffff00, scale: 10 },
+  { shape: 'cylinder', coordinates: { latitude: 49.630532, longitude: 6.151623, altitude: 0.5 }, color: 0xff00ff, scale: 50 },
 ];
 
 const App = () => {
   const [ objects ] = useState<Mesh[]>(filter(gpsMeshes.map(convert).map(render)));
   //const [ objects ] = useState<Mesh[]>(filter(meshes.map(render)));
   const [ currentObjects, setCurrentObjects ] = useState<Mesh[]>([]);
-  const renderLimit = 200;
+  const renderLimit = 1000;
   const updateInterval = 10;
 
   const { width, height } = useWindowDimensions();
