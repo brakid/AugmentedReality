@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useWindowDimensions, View, Text } from 'react-native';
 import { ExpoWebGLRenderingContext, GLView } from 'expo-gl';
 import { AmbientLight, Fog, GridHelper, Mesh, PerspectiveCamera, Scene, WebGLRenderer } from 'three';
-import { distance, filter, getCanvas } from './utils';
+import { coordinatesToVector, distance, filter, getCanvas } from './utils';
 import { LocationAccuracy, LocationObject, LocationOptions } from 'expo-location';
 import { ThreeAxisMeasurement, Magnetometer, DeviceMotion } from 'expo-sensors';
 import { Subscription } from 'expo-modules-core';
@@ -11,7 +11,7 @@ import { Camera } from 'expo-camera';
 import { getOrientation, getRotationMatrix, Orientation } from './rotation';
 import { LowPassFilter } from './lowpassfilter';
 import { StepDetector } from './stepdetector';
-import { render } from './rendering';
+import { convert, render } from './rendering';
 
 const meshes = [
   { shape: 'cube', x: 1, y: 0.5, z: 0, color: 0xff0000 },
@@ -21,13 +21,19 @@ const meshes = [
   { shape: 'cube', x: 9, y: 0.5, z: 0, color: 0x000000 },
 ];
 
+const gpsMeshes = [
+  { shape: 'cube', coordinates: { latitude: 49.627644, longitude: 6.150791, altitude: 0.5 }, color: 0xffff00 },
+];
+
 const App = () => {
-  const [ objects ] = useState<Mesh[]>(filter(meshes.map(mesh => render(mesh))));
+  const [ objects ] = useState<Mesh[]>(filter(gpsMeshes.map(convert).map(render)));
+  //const [ objects ] = useState<Mesh[]>(filter(meshes.map(render)));
   const [ currentObjects, setCurrentObjects ] = useState<Mesh[]>([]);
-  const renderLimit = 5;
+  const renderLimit = 200;
+  const updateInterval = 10;
 
   const { width, height } = useWindowDimensions();
-  const [ location, setLocation ] = useState<LocationObject>();
+  const [ location, setLocation ] = useState<LocationObject>({ timestamp: 0, coords: { accuracy: null, altitudeAccuracy: null, heading: null, speed: null, latitude: 49.628181, longitude: 6.1507497, altitude: 395.79998779296875 } });
   const [ locationSubscription, setLocationSubscription ] = useState<Subscription>();
   const [ orientation, setOrientation ] = useState<Orientation>({ azimuth: 0, pitch: 0, roll: 0 });
   const [ magnetometerFilter ] = useState<LowPassFilter>(new LowPassFilter());
@@ -49,7 +55,7 @@ const App = () => {
         console.log('Permission to access Magnetometer was denied');
         return;
       }
-      Magnetometer.setUpdateInterval(50);
+      Magnetometer.setUpdateInterval(updateInterval);
       const subscription = Magnetometer.addListener(data => appendMagnetometerData(data))
       setMagnetometerSubscription(subscription);
       console.log('Magnetometer available');
@@ -76,7 +82,7 @@ const App = () => {
         console.log('Permission to access DeviceMotion was denied');
         return;
       }
-      DeviceMotion.setUpdateInterval(50);
+      DeviceMotion.setUpdateInterval(updateInterval);
       const subscription = DeviceMotion.addListener(data => appendAccelerometerData(data.accelerationIncludingGravity))
       setAccelerometerSubscription(subscription);
       console.log('DeviceMotion available');
@@ -97,21 +103,27 @@ const App = () => {
   };
 
   const subscribeLocation = async () => {
-    let { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') {
-      console.log('Permission to access location was denied');
-      return;
+    const available = await Location.isBackgroundLocationAvailableAsync();
+    if (available) {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.log('Permission to access location was denied');
+        return;
+      }
+
+      const options: LocationOptions = {
+        accuracy: LocationAccuracy.BestForNavigation,
+        timeInterval: 500,
+        distanceInterval: 10
+      };
+      const subscription = await Location.watchPositionAsync(options, (location => setLocation(location)));
+      setLocationSubscription(subscription);
+
+      setLocation(await Location.getCurrentPositionAsync({}));
+      console.log('Location available');
+    } else {
+      console.log('Location not available');
     }
-
-    const options: LocationOptions = {
-      accuracy: LocationAccuracy.BestForNavigation,
-      timeInterval: 500,
-      distanceInterval: 10
-    };
-    const subscription = await Location.watchPositionAsync(options, (location => setLocation(location)))
-    setLocationSubscription(subscription);
-
-    setLocation(await Location.getCurrentPositionAsync({}));
   };
 
   const unsubscribeLocation = () => {
@@ -136,6 +148,7 @@ const App = () => {
     subscribeAccelerometer();
     //subscribeLocation();
 
+    //setLocation({ timestamp: 0, coords: { accuracy: null, altitudeAccuracy: null, heading: null, speed: null, latitude: 49.628181, longitude: 6.1507497, altitude: 395.79998779296875 } });
     return () => { unsubscribeMagnetometer(); unsubscribeAccelerometer(); unsubscribeLocation() };
   }, []);
 
@@ -192,10 +205,14 @@ const App = () => {
 
       const objectsToRender = objects.filter(object => distance(position, object.position) < renderLimit);
 
+      //console.log('All Objects: ' + JSON.stringify(objects.map(object => object.position)));
       //console.log('Objects to render: ' + JSON.stringify(objectsToRender.map(object => object.position)));
 
       const newObjectsToRender = objectsToRender.filter(object => !currentObjects.includes(object));
       const objectsToRemove = currentObjects.filter(object => !objectsToRender.includes(object));
+
+      //console.log('New Objects: ' + JSON.stringify(newObjectsToRender.map(object => object.position)));
+      //console.log('Objects to remove: ' + JSON.stringify(objectsToRemove.map(object => object.position)));
 
       newObjectsToRender.map(object => sceneRef.current?.add(object));
       objectsToRemove.map(object => sceneRef.current?.remove(object));
@@ -211,7 +228,9 @@ const App = () => {
 
   const updatePosition = () => {
     if (cameraRef.current && location) {
-      cameraRef.current.position.set(location.coords.latitude, 2, location.coords.longitude);
+      const position = coordinatesToVector(location.coords);
+      cameraRef.current.position.set(position.x, 2, position.z);
+      console.log('Set position');
     }
   }
 
@@ -236,6 +255,7 @@ const App = () => {
     const scene = new Scene();
     scene.fog = new Fog(sceneColor, 1, 10000);
     scene.add(new GridHelper(100, 100));
+    //scene.scale.set(2, 2, 2);
 
     sceneRef.current = scene;
   
@@ -246,7 +266,7 @@ const App = () => {
     // x- -> South
     // z+ -> East
     // z- -> West
-
+    updatePosition();
     renderObjects();
     // Setup an animation loop
     const render = () => {

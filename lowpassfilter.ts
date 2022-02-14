@@ -3,7 +3,7 @@ import { ThreeAxisMeasurement } from 'expo-sensors';
 export class LowPassFilter {
   private buffer: ThreeAxisMeasurement[] = [];
   private smoothingFactor: number = 0.3;
-  private bufferSize: number = 20;
+  private bufferSize: number = 50;
   private zeroMeasurement: ThreeAxisMeasurement = { x: 0.0, y: 0.0, z: 0.0 };
 
   pass(value: ThreeAxisMeasurement): ThreeAxisMeasurement {

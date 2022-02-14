@@ -66,3 +66,15 @@ export const filter = <T>(array: (T | undefined)[]): T[] => {
 
   return result;
 };
+
+export interface Coordinates {
+  longitude: number,
+  latitude: number,
+  altitude: number | null,
+};
+
+export const CONVERSION_FACTOR = 111139;
+
+export const coordinatesToVector = (coordinates: Coordinates): Vector3 => {
+  return new Vector3(coordinates.latitude * CONVERSION_FACTOR, coordinates.altitude || 2, coordinates.longitude * CONVERSION_FACTOR);
+}

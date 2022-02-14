@@ -1,4 +1,11 @@
 import { BoxBufferGeometry, CylinderBufferGeometry, Mesh, MeshBasicMaterial, SphereBufferGeometry, TorusBufferGeometry } from 'three';
+import { Coordinates, coordinatesToVector } from './utils';
+
+export interface GPSMeshObject {
+  shape: string,
+  coordinates: Coordinates, 
+  color: number
+};
 
 export interface MeshObject {
   shape: string,
@@ -9,6 +16,18 @@ export interface MeshObject {
 };
 
 type MeshFunction = (x: number, y: number, z: number, color: number) => Mesh;
+
+export const convert = (gpsMeshObject: GPSMeshObject): MeshObject => {
+  const position = coordinatesToVector(gpsMeshObject.coordinates);
+
+  return {
+    shape: gpsMeshObject.shape,
+    x: position.x,
+    y: position.y,
+    z: position.z,
+    color: gpsMeshObject.color
+  };
+}
 
 export const render = (meshObject: MeshObject): Mesh | undefined => {
   const meshFunction = getMeshFunction(meshObject.shape);
@@ -31,7 +50,7 @@ export const getMeshFunction = (shape: string): MeshFunction | undefined => {
 };
 
 export const getCube: MeshFunction = (x: number, y: number, z: number, color: number): Mesh => {
-  const cube = new Mesh(new BoxBufferGeometry(1.0, 1.0, 1.0), new MeshBasicMaterial({ color }));
+  const cube = new Mesh(new BoxBufferGeometry(10.0, 10.0, 10.0), new MeshBasicMaterial({ color }));
   cube.position.set(x, y, z);
 
   return cube;
