@@ -1,15 +1,5 @@
 import { ThreeAxisMeasurement } from 'expo-sensors';
-
-export interface Rotation {
-  inclinationMatrix: number[],
-  rotationMatrix: number[],
-};
-
-export interface Orientation {
-  azimuth: number, // z axis rotation
-  pitch: number, // x axis rotation
-  roll: number, // y axis rotation
-};
+import { Orientation, Rotation } from './types';
 
 // https://cs.android.com/android/platform/superproject/+/master:frameworks/base/core/java/android/hardware/SensorManager.java;l=83?q=SensorManager
 export const getRotationMatrix = (accelerometerData: ThreeAxisMeasurement, magnetormeterData: ThreeAxisMeasurement): Rotation | undefined => {

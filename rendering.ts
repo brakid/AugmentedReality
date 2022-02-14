@@ -1,23 +1,6 @@
 import { BoxBufferGeometry, CylinderBufferGeometry, Mesh, MeshBasicMaterial, SphereBufferGeometry, TorusBufferGeometry } from 'three';
-import { Coordinates, coordinatesToVector } from './utils';
-
-export interface GPSMeshObject {
-  shape: string,
-  coordinates: Coordinates, 
-  color: number,
-  scale?: number,
-};
-
-export interface MeshObject {
-  shape: string,
-  x: number, 
-  y: number, 
-  z: number, 
-  color: number,
-  scale?: number
-};
-
-type MeshFunction = (x: number, y: number, z: number, color: number, scale: number) => Mesh;
+import { coordinatesToVector } from './renderhelper';
+import { GPSMeshObject, MeshFunction, MeshObject } from './types';
 
 export const convert = (gpsMeshObject: GPSMeshObject): MeshObject => {
   const position = coordinatesToVector(gpsMeshObject.coordinates);
