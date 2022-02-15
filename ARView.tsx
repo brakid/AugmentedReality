@@ -11,7 +11,7 @@ import { Camera } from 'expo-camera';
 import { LowPassFilter } from './lowpassfilter';
 import { StepDetector } from './stepdetector';
 import { convert, render } from './rendering';
-import { ARViewProps, Orientation } from './types';
+import { ARViewProps, Coordinates, Orientation } from './types';
 import { coordinatesToVector, distance, filter } from './renderhelper';
 import { getOrientation, getRotationMatrix } from './rotation';
 
@@ -21,7 +21,7 @@ const ARView = ({ gpsMeshes, updateInterval, renderLimit }: ARViewProps) => {
   const rotationAngle = 3 * Math.PI / 4;
 
   const { width, height } = useWindowDimensions();
-  const [ location, setLocation ] = useState<LocationObject>({ timestamp: 0, coords: { accuracy: null, altitudeAccuracy: null, heading: null, speed: null, latitude: 49.628181, longitude: 6.1507497, altitude: 395.79998779296875 } });
+  const [ location, setLocation ] = useState<Coordinates>({ latitude: 49.628181, longitude: 6.1507497, altitude: 395.79998779296875 });
   const [ locationSubscription, setLocationSubscription ] = useState<Subscription>();
   const [ orientation, setOrientation ] = useState<Orientation>({ azimuth: 0, pitch: 0, roll: 0 });
   const [ magnetometerFilter ] = useState<LowPassFilter>(new LowPassFilter());
@@ -104,10 +104,10 @@ const ARView = ({ gpsMeshes, updateInterval, renderLimit }: ARViewProps) => {
         timeInterval: 500,
         distanceInterval: 10
       };
-      const subscription = await Location.watchPositionAsync(options, (location => setLocation(location)));
+      const subscription = await Location.watchPositionAsync(options, (location => setLocation(location.coords)));
       setLocationSubscription(subscription);
 
-      setLocation(await Location.getCurrentPositionAsync({}));
+      setLocation((await Location.getCurrentPositionAsync({})).coords);
       console.log('Location available');
     } else {
       console.log('Location not available');
@@ -162,18 +162,6 @@ const ARView = ({ gpsMeshes, updateInterval, renderLimit }: ARViewProps) => {
     changeView();
   }, [orientation]);
 
-  const changePosition = () => {
-    if (cameraRef.current) {
-      const stepWidth = 0.6;
-
-      const xMovement = -1.0 * stepWidth * Math.sin(orientation.azimuth + rotationAngle);
-      const yMovement = -1.0 * stepWidth * Math.cos(orientation.azimuth + rotationAngle);
-
-      const { x, y, z } = cameraRef.current.position;
-      cameraRef.current.position.set(x + xMovement, y, z + yMovement);
-    }
-  }
-
   const renderObjects = () => {
     if (cameraRef.current && sceneRef.current) {
       const position = cameraRef.current.position;
@@ -190,6 +178,18 @@ const ARView = ({ gpsMeshes, updateInterval, renderLimit }: ARViewProps) => {
     }
   };
 
+  const changePosition = () => {
+    if (cameraRef.current) {
+      const stepWidth = 0.6;
+
+      const xMovement = -1.0 * stepWidth * Math.sin(orientation.azimuth + rotationAngle);
+      const yMovement = -1.0 * stepWidth * Math.cos(orientation.azimuth + rotationAngle);
+
+      const { x, y, z } = cameraRef.current.position;
+      cameraRef.current.position.set(x + xMovement, y, z + yMovement);
+    }
+  }
+
   useEffect(() => {
     changePosition();
     renderObjects();
@@ -197,7 +197,7 @@ const ARView = ({ gpsMeshes, updateInterval, renderLimit }: ARViewProps) => {
 
   const updatePosition = () => {
     if (cameraRef.current && location) {
-      const position = coordinatesToVector(location.coords);
+      const position = coordinatesToVector(location);
       cameraRef.current.position.set(position.x, 2, position.z);
       console.log('Set position');
     }
