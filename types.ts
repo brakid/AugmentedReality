@@ -22,7 +22,7 @@ export interface MeshObject {
   scale?: number
 };
 
-export type MeshFunction = (x: number, y: number, z: number, color: number, scale: number) => Mesh;
+export type MeshFunction = (x: number, y: number, z: number, color: number, scale: number) => Promise<Mesh>;
 
 export interface Coordinates {
   longitude: number,

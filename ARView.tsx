@@ -16,7 +16,7 @@ import { coordinatesToVector, distance, filter } from './renderhelper';
 import { getOrientation, getRotationMatrix } from './rotation';
 
 const ARView = ({ gpsMeshes, updateInterval, renderLimit }: ARViewProps) => {
-  const [ objects ] = useState<Mesh[]>(filter(gpsMeshes.map(convert).map(render)));
+ const [ objects, setObjects ] = useState<Mesh[]>([]);
   const [ currentObjects, setCurrentObjects ] = useState<Mesh[]>([]);
   const rotationAngle = 3 * Math.PI / 4;
 
@@ -24,16 +24,27 @@ const ARView = ({ gpsMeshes, updateInterval, renderLimit }: ARViewProps) => {
   const [ location, setLocation ] = useState<Coordinates>({ latitude: 49.628181, longitude: 6.1507497, altitude: 395.79998779296875 });
   const [ locationSubscription, setLocationSubscription ] = useState<Subscription>();
   const [ orientation, setOrientation ] = useState<Orientation>({ azimuth: 0, pitch: 0, roll: 0 });
-  const [ magnetometerFilter ] = useState<LowPassFilter>(new LowPassFilter());
+  const [ magnetometerFilter ] = useState<LowPassFilter>(new LowPassFilter(0.2, 1000 / updateInterval));
   const [ magnetometerData, setMagnetometerData ] = useState<ThreeAxisMeasurement>({ x: 0, y: 0, z: 0 });
   const [ magnetometerSubscription, setMagnetometerSubscription ] = useState<Subscription>();
-  const [ accelerometerFilter ] = useState<LowPassFilter>(new LowPassFilter());
+  const [ accelerometerFilter ] = useState<LowPassFilter>(new LowPassFilter(0.2, 1000 / updateInterval));
   const [ accelerometerData, setAccelerometerData ] = useState<ThreeAxisMeasurement>({ x: 0, y: 0, z: 0 });
   const [ accelerometerSubscription, setAccelerometerSubscription ] = useState<Subscription>();
   const [ stepDetector ] = useState<StepDetector>(new StepDetector());
   const [ steps, setSteps ] = useState<number>(0);
   const cameraRef = useRef<PerspectiveCamera>();
   const sceneRef = useRef<Scene>();
+
+  const loadObjects = async () => {
+    try {
+      const allObjectsPromise = Promise.all(gpsMeshes.map(convert).map(render));
+      const allObjects = await allObjectsPromise;
+      setObjects(filter(allObjects));
+      console.log('Loaded objects');
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   const subscribeMagnetometer = async () => {
     const available = await Magnetometer.isAvailableAsync();
@@ -131,6 +142,7 @@ const ARView = ({ gpsMeshes, updateInterval, renderLimit }: ARViewProps) => {
     const stepCallback = () => { setSteps(steps => steps + 1) };
     stepDetector.setStepCallback(stepCallback);
 
+    loadObjects();
     initCamera();
     subscribeMagnetometer();
     subscribeAccelerometer();

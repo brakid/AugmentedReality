@@ -2,9 +2,14 @@ import { ThreeAxisMeasurement } from 'expo-sensors';
 
 export class LowPassFilter {
   private buffer: ThreeAxisMeasurement[] = [];
-  private smoothingFactor: number = 0.3;
-  private bufferSize: number = 50;
+  private smoothingFactor: number;
+  private bufferSize: number;
   private zeroMeasurement: ThreeAxisMeasurement = { x: 0.0, y: 0.0, z: 0.0 };
+
+  constructor(smoothingFactor: number = 0.3, bufferSize: number = 50) {
+    this.smoothingFactor = smoothingFactor;
+    this.bufferSize = bufferSize;
+  }
 
   pass(value: ThreeAxisMeasurement): ThreeAxisMeasurement {
     const removed = this.push(value);

@@ -1,4 +1,5 @@
 import { BoxBufferGeometry, CylinderBufferGeometry, Mesh, MeshBasicMaterial, SphereBufferGeometry, TorusBufferGeometry } from 'three';
+import { STLLoader } from 'three/examples/jsm/loaders/STLLoader';
 import { coordinatesToVector } from './renderhelper';
 import { GPSMeshObject, MeshFunction, MeshObject } from './types';
 
@@ -15,14 +16,14 @@ export const convert = (gpsMeshObject: GPSMeshObject): MeshObject => {
   };
 }
 
-export const render = (meshObject: MeshObject): Mesh | undefined => {
+export const render = (meshObject: MeshObject): Promise<Mesh> => {
   const meshFunction = getMeshFunction(meshObject.shape);
 
   if (meshFunction) {
     return meshFunction(meshObject.x, meshObject.y, meshObject.z, meshObject.color, meshObject.scale || 1.0);
+  } else {
+    return loadObject(meshObject.shape, meshObject.x, meshObject.y, meshObject.z, meshObject.color, meshObject.scale || 1.0);
   }
-
-  return undefined;
 };
 
 export const getMeshFunction = (shape: string): MeshFunction | undefined => {
@@ -35,30 +36,41 @@ export const getMeshFunction = (shape: string): MeshFunction | undefined => {
   return undefined;
 };
 
-export const getCube: MeshFunction = (x: number, y: number, z: number, color: number, scale: number = 1.0): Mesh => {
-  const cube = new Mesh(new BoxBufferGeometry(scale, scale, scale), new MeshBasicMaterial({ color }));
-  cube.position.set(x, y, z);
+export const getCube: MeshFunction = (x: number, y: number, z: number, color: number, scale: number = 1.0): Promise<Mesh> => {
+  const mesh = new Mesh(new BoxBufferGeometry(scale, scale, scale), new MeshBasicMaterial({ color }));
+  mesh.position.set(x, y, z);
 
-  return cube;
+  return Promise.resolve(mesh);
 };
 
-export const getSphere: MeshFunction = (x: number, y: number, z: number, color: number, scale: number = 1.0): Mesh => {
-  const cube = new Mesh(new SphereBufferGeometry(scale), new MeshBasicMaterial({ color }));
-  cube.position.set(x, y, z);
+export const getSphere: MeshFunction = (x: number, y: number, z: number, color: number, scale: number = 1.0): Promise<Mesh> => {
+  const mesh = new Mesh(new SphereBufferGeometry(scale), new MeshBasicMaterial({ color }));
+  mesh.position.set(x, y, z);
 
-  return cube;
+  return Promise.resolve(mesh);
 };
 
-export const getTorus: MeshFunction = (x: number, y: number, z: number, color: number, scale: number = 1.0): Mesh => {
-  const cube = new Mesh(new TorusBufferGeometry(), new MeshBasicMaterial({ color }));
-  cube.position.set(x, y, z);
+export const getTorus: MeshFunction = (x: number, y: number, z: number, color: number, scale: number = 1.0): Promise<Mesh> => {
+  const mesh = new Mesh(new TorusBufferGeometry(), new MeshBasicMaterial({ color }));
+  mesh.position.set(x, y, z);
 
-  return cube;
+  return Promise.resolve(mesh);
 };
 
-export const getCylinder: MeshFunction = (x: number, y: number, z: number, color: number, scale: number = 1.0): Mesh => {
-  const cube = new Mesh(new CylinderBufferGeometry(), new MeshBasicMaterial({ color }));
-  cube.position.set(x, y, z);
+export const getCylinder: MeshFunction = (x: number, y: number, z: number, color: number, scale: number = 1.0): Promise<Mesh> => {
+  const mesh = new Mesh(new CylinderBufferGeometry(), new MeshBasicMaterial({ color }));
+  mesh.position.set(x, y, z);
 
-  return cube;
+  return Promise.resolve(mesh);
+};
+
+export const loadObject = async (fileName: string, x: number, y: number, z: number, color: number, scale: number = 1.0): Promise<Mesh> => {
+  const loader = new STLLoader();
+  const geometry = await loader.loadAsync(
+      'object.stl',
+      progress => {
+        console.log(progress);
+      });
+
+  return new Mesh(geometry, new MeshBasicMaterial({ color }));
 };
