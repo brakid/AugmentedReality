@@ -1,4 +1,5 @@
-import { BoxBufferGeometry, CylinderBufferGeometry, Mesh, MeshBasicMaterial, SphereBufferGeometry, TorusBufferGeometry } from 'three';
+import { Asset } from 'expo-asset';
+import { BoxBufferGeometry, CylinderBufferGeometry, FileLoader, Mesh, MeshBasicMaterial, SphereBufferGeometry, TorusBufferGeometry } from 'three';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader';
 import { coordinatesToVector } from './renderhelper';
 import { GPSMeshObject, MeshFunction, MeshObject } from './types';
@@ -67,7 +68,7 @@ export const getCylinder: MeshFunction = (x: number, y: number, z: number, color
 export const loadObject = async (fileName: string, x: number, y: number, z: number, color: number, scale: number = 1.0): Promise<Mesh> => {
   const loader = new STLLoader();
   const geometry = await loader.loadAsync(
-      'object.stl',
+    fileName,
       progress => {
         console.log(progress);
       });
