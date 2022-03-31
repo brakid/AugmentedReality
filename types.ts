@@ -44,5 +44,5 @@ export interface Orientation {
 export interface GpxPoint {
   ele: string, 
   lon: string, 
-  lat: string }
+  lat: string,
 };
