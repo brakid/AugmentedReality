@@ -1,5 +1,4 @@
-import { Asset } from 'expo-asset';
-import { BoxBufferGeometry, CylinderBufferGeometry, FileLoader, Mesh, MeshBasicMaterial, SphereBufferGeometry, TorusBufferGeometry } from 'three';
+import { BoxBufferGeometry, ConeBufferGeometry, CylinderBufferGeometry, Mesh, MeshBasicMaterial, SphereBufferGeometry, TorusBufferGeometry } from 'three';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader';
 import { coordinatesToVector } from './renderhelper';
 import { GPSMeshObject, MeshFunction, MeshObject } from './types';
@@ -33,6 +32,7 @@ export const getMeshFunction = (shape: string): MeshFunction | undefined => {
     case 'sphere': return getSphere;
     case 'torus': return getTorus;
     case 'cylinder': return getCylinder;
+    case 'cone': return getUpsideDownCone;
   }
   return undefined;
 };
@@ -65,10 +65,25 @@ export const getCylinder: MeshFunction = (x: number, y: number, z: number, color
   return Promise.resolve(mesh);
 };
 
+export const getCone: MeshFunction = (x: number, y: number, z: number, color: number, scale: number = 1.0): Promise<Mesh> => {
+  const mesh = new Mesh(new ConeBufferGeometry(1 * scale, 2 * scale, 32), new MeshBasicMaterial({ color }));
+  mesh.position.set(x, y, z);
+
+  return Promise.resolve(mesh);
+};
+
+export const getUpsideDownCone: MeshFunction = (x: number, y: number, z: number, color: number, scale: number = 1.0): Promise<Mesh> => {
+  const mesh = new Mesh(new ConeBufferGeometry(1 * scale, 2 * scale, 32), new MeshBasicMaterial({ color }));
+  mesh.position.set(x, y, z);
+  mesh.rotateZ(Math.PI);
+
+  return Promise.resolve(mesh);
+};
+
 export const loadObject = async (fileName: string, x: number, y: number, z: number, color: number, scale: number = 1.0): Promise<Mesh> => {
   const loader = new STLLoader();
   const geometry = await loader.loadAsync(
-    fileName,
+      fileName,
       progress => {
         console.log(progress);
       });

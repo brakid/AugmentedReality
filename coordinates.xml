@@ -1,0 +1,97 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<gpx version="1.1" creator="https://www.komoot.de" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+  <metadata>
+    <name>Laufrunde</name>
+    <author>
+      <link href="https://www.komoot.de">
+        <text>komoot</text>
+        <type>text/html</type>
+      </link>
+    </author>
+  </metadata>
+  <trk>
+    <name>Laufrunde</name>
+    <trkseg>
+      <trkpt lat="49.628288" lon="6.151315">
+        <ele>345.314414</ele>
+        <time>2022-03-31T19:55:13.970Z</time>
+      </trkpt>
+      <trkpt lat="49.629037" lon="6.153183">
+        <ele>345.009624</ele>
+        <time>2022-03-31T19:56:10.979Z</time>
+      </trkpt>
+      <trkpt lat="49.629488" lon="6.152859">
+        <ele>344.720128</ele>
+        <time>2022-03-31T19:56:30.940Z</time>
+      </trkpt>
+      <trkpt lat="49.629829" lon="6.152159">
+        <ele>344.389958</ele>
+        <time>2022-03-31T19:56:54.325Z</time>
+      </trkpt>
+      <trkpt lat="49.629870" lon="6.152075">
+        <ele>344.350310</ele>
+        <time>2022-03-31T19:56:57.063Z</time>
+      </trkpt>
+      <trkpt lat="49.630390" lon="6.151624">
+        <ele>344.191704</ele>
+        <time>2022-03-31T19:57:21.357Z</time>
+      </trkpt>
+      <trkpt lat="49.630435" lon="6.151520">
+        <ele>344.178164</ele>
+        <time>2022-03-31T19:57:24.762Z</time>
+      </trkpt>
+      <trkpt lat="49.630984" lon="6.151088">
+        <ele>344.075176</ele>
+        <time>2022-03-31T19:57:50.164Z</time>
+      </trkpt>
+      <trkpt lat="49.630148" lon="6.148962">
+        <ele>342.969424</ele>
+        <time>2022-03-31T19:58:55.540Z</time>
+      </trkpt>
+      <trkpt lat="49.630015" lon="6.148687">
+        <ele>342.739353</ele>
+        <time>2022-03-31T19:59:04.108Z</time>
+      </trkpt>
+      <trkpt lat="49.629641" lon="6.148186">
+        <ele>342.226880</ele>
+        <time>2022-03-31T19:59:23.532Z</time>
+      </trkpt>
+      <trkpt lat="49.629524" lon="6.148155">
+        <ele>342.105432</ele>
+        <time>2022-03-31T19:59:28.332Z</time>
+      </trkpt>
+      <trkpt lat="49.629524" lon="6.148155">
+        <ele>342.105432</ele>
+        <time>2022-03-31T19:59:28.439Z</time>
+      </trkpt>
+      <trkpt lat="49.628985" lon="6.148666">
+        <ele>342.075852</ele>
+        <time>2022-03-31T19:59:54.234Z</time>
+      </trkpt>
+      <trkpt lat="49.628491" lon="6.149119">
+        <ele>342.048982</ele>
+        <time>2022-03-31T20:00:17.752Z</time>
+      </trkpt>
+      <trkpt lat="49.628163" lon="6.149424">
+        <ele>342.031075</ele>
+        <time>2022-03-31T20:00:33.643Z</time>
+      </trkpt>
+      <trkpt lat="49.628024" lon="6.149506">
+        <ele>342.024116</ele>
+        <time>2022-03-31T20:00:40.153Z</time>
+      </trkpt>
+      <trkpt lat="49.627640" lon="6.149390">
+        <ele>342.021384</ele>
+        <time>2022-03-31T20:00:57.135Z</time>
+      </trkpt>
+      <trkpt lat="49.627500" lon="6.149459">
+        <ele>342.021384</ele>
+        <time>2022-03-31T20:01:03.574Z</time>
+      </trkpt>
+      <trkpt lat="49.628154" lon="6.150987">
+        <ele>342.021384</ele>
+        <time>2022-03-31T20:01:55.310Z</time>
+      </trkpt>
+    </trkseg>
+  </trk>
+</gpx>

@@ -40,3 +40,9 @@ export interface Orientation {
   pitch: number, // x axis rotation
   roll: number, // y axis rotation
 };
+
+export interface GpxPoint {
+  ele: string, 
+  lon: string, 
+  lat: string }
+};
